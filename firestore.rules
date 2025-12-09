@@ -1,0 +1,70 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isRoomHost(roomId) {
+      return get(/databases/$(database)/documents/rooms/$(roomId)).data.hostId == request.auth.uid;
+    }
+    
+    // Check if the user is a member of the room by seeing if their player document exists.
+    function isPlayerInRoom(roomId) {
+      return exists(/databases/$(database)/documents/rooms/$(roomId)/players/$(request.auth.uid));
+    }
+    
+    function isOnlyClearingLastMessage() {
+      // This rule is more complex in practice due to how Firestore evaluates updates.
+      // A client-side update with just `lastMessage` will still have the full document
+      // context in `request.resource.data`. A better way is to check `request.writeFields`.
+      return request.writeFields.hasOnly(['lastMessage']);
+    }
+
+    match /rooms/{roomId} {
+      // Allow any authenticated user to get basic room data.
+      allow get: if isSignedIn();
+      // Allow any authenticated user to create a room. The hostId is set on the client.
+      allow create: if isSignedIn();
+      
+      // Allow the host to make any update.
+      // Allow any player in the room to specifically clear the last message toast.
+      allow update: if isRoomHost(roomId) || (isPlayerInRoom(roomId) && isOnlyClearingLastMessage());
+      
+      // Only the host can delete the room.
+      allow delete: if isRoomHost(roomId);
+
+      // --- Player Permissions ---
+      match /players/{playerId} {
+        // A user can create/update their own player doc (e.g. to join or vote).
+        // The host can also update any player doc (e.g. to reset votes).
+        allow write: if isSignedIn() && (request.auth.uid == playerId || isRoomHost(roomId));
+        
+        // Any player in the room can read the list of players and individual player docs.
+        allow read: if isPlayerInRoom(roomId);
+      }
+
+      // --- Story History Permissions ---
+      match /stories/{storyId} {
+        // Any player in the room can get a single story or list the whole history.
+        allow read: if isPlayerInRoom(roomId);
+        
+        // Only the host can add stories to the history.
+        allow create: if isRoomHost(roomId);
+        
+        // History is immutable once created.
+        allow update, delete: if false; 
+      }
+    }
+    
+    match /feedback/{feedbackId} {
+        // Any authenticated user can submit feedback.
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        
+        // Nobody can read, update, or delete feedback from the client.
+        allow read, update, delete: if false;
+    }
+  }
+}

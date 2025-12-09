@@ -1,0 +1,214 @@
+
+{
+  "entities": {
+    "Room": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Room",
+      "type": "object",
+      "description": "Represents a poker room for story sizing.",
+      "properties": {
+        "hostId": {
+          "type": "string",
+          "description": "The UID of the user who created and hosts the room."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the room, often the same as the host's name initially."
+        },
+        "sizingOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The array of strings for sizing cards (e.g., Fibonacci, T-Shirt)."
+        },
+        "currentStory": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "finalSize": {
+              "type": "string"
+            }
+          }
+        },
+        "isRevealed": {
+          "type": "boolean",
+          "description": "Indicates if the votes for the current story are revealed."
+        },
+        "allowPlayerInvites": {
+          "type": "boolean",
+          "description": "If true, players other than the host can invite others."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lastMessage": {
+            "type": "string",
+            "description": "A temporary message to be displayed as a toast to all users."
+        }
+      },
+      "required": [
+        "hostId",
+        "name",
+        "sizingOptions",
+        "createdAt"
+      ]
+    },
+    "Player": {
+      "$schema": "http://json-schema.org/draft-07-schema#",
+      "title": "Player",
+      "type": "object",
+      "description": "Represents a user participating in a poker room.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The display name of the player."
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "URL of the player's chosen avatar."
+        },
+        "vote": {
+          "type": "string",
+          "description": "The player's vote for the current story."
+        },
+        "comment": {
+          "type": "string",
+          "description": "An optional comment with the vote."
+        },
+        "voted": {
+          "type": "boolean",
+          "description": "Indicates if the player has voted on the current story."
+        },
+        "isHost": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "avatarUrl",
+        "isHost"
+      ]
+    },
+    "Story": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Story",
+      "type": "object",
+      "description": "Represents a story that has been voted on and is now part of the history.",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "finalSize": {
+          "type": "string"
+        },
+        "votes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "player": { "type": "string" },
+              "vote": { "type": "string" },
+              "comment": { "type": "string" },
+              "avatarUrl": { "type": "string" }
+            },
+            "required": ["player", "vote"]
+          }
+        }
+      },
+      "required": [
+        "title",
+        "finalSize",
+        "votes"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "description": "Represents a basic user profile, primarily for auth.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" }
+      }
+    },
+    "Feedback": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Feedback",
+      "type": "object",
+      "description": "Represents feedback submitted by a user.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who submitted the feedback."
+        },
+        "rating": {
+          "type": "number",
+          "description": "The star rating provided by the user (1-5)."
+        },
+        "feedbackText": {
+          "type": "string",
+          "description": "The detailed feedback text."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "rating", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/rooms/{roomId}",
+        "definition": {
+          "entityName": "Room",
+          "schema": {
+            "$ref": "#/backend/entities/Room"
+          },
+          "description": "Top-level collection for collaborative poker rooms."
+        }
+      },
+      {
+        "path": "/rooms/{roomId}/players/{playerId}",
+        "definition": {
+          "entityName": "Player",
+          "schema": {
+            "$ref": "#/backend/entities/Player"
+          },
+          "description": "Subcollection storing the state of each player in a room. The 'playerId' is the user's Auth UID."
+        }
+      },
+      {
+        "path": "/rooms/{roomId}/stories/{storyId}",
+        "definition": {
+          "entityName": "Story",
+          "schema": {
+            "$ref": "#/backend/entities/Story"
+          },
+          "description": "Subcollection storing the history of completed stories for a room."
+        }
+      },
+      {
+        "path": "/feedback/{feedbackId}",
+        "definition": {
+          "entityName": "Feedback",
+          "schema": {
+            "$ref": "#/backend/entities/Feedback"
+          },
+          "description": "Collection for user-submitted feedback."
+        }
+      }
+    ]
+  }
+}
+
+    

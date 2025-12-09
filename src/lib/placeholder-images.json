@@ -1,0 +1,148 @@
+{
+  "placeholderImages": [
+    {
+      "id": "avatar-1",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1716507393710-b63eab13a111?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjeWJlciUyMHB1bmslMjBjYXR8ZW58MHx8fHwxNzY0Nzg0MzIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cyber punk cat"
+    },
+    {
+      "id": "avatar-2",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1669102585878-7e26983a9fdc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkb2clMjBhc3Ryb25hdXR8ZW58MHx8fHwxNzY0Nzg0MzIxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog astronaut"
+    },
+    {
+      "id": "avatar-3",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1649135527406-f1cabde17570?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxrb2FsYSUyMERKfGVufDB8fHx8MTc2NDc4NDMyMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "koala DJ"
+    },
+    {
+      "id": "avatar-4",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1599951420058-5ec049a03e20?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwYW5kYSUyMGRldGVjdGl2ZXxlbnwwfHx8fDE3NjQ3ODQzMjF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "panda detective"
+    },
+    {
+      "id": "avatar-5",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1595495745866-982640a7d46f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxmb3glMjB3aXphcmR8ZW58MHx8fHwxNzY0Nzg0MzIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fox wizard"
+    },
+    {
+      "id": "avatar-6",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1640455686335-9b546193b8d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bGlvbiUyMGtuaWdodHxlbnwwfHx8fDE3NjQ3ODQzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lion knight"
+    },
+    {
+      "id": "avatar-7",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1729523105106-60277cac975a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwZW5ndWluJTIwcGlyYXRlfGVufDB8fHx8MTc2NDc4NDMyMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "penguin pirate"
+    },
+    {
+      "id": "avatar-8",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1742909622626-33047bd667ec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzbG90aCUyMHNjaWVudGlzdHxlbnwwfHx8fDE3NjQ3ODQzMjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sloth scientist"
+    },
+    {
+      "id": "avatar-9",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1634004483017-9df6723c2c51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxiZWFyJTIwY2hlZnxlbnwwfHx8fDE3NjQ3ODQzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bear chef"
+    },
+    {
+      "id": "avatar-10",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1725205336637-eaaccdf9bbb0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxvY3RvcHVzJTIwYXJ0aXN0fGVufDB8fHx8MTc2NDc4NDMyMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "octopus artist"
+    },
+    {
+      "id": "avatar-11",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1652884993339-f433942f30bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzcXVpcnJlbCUyMG5pbmphfGVufDB8fHx8MTc2NDc4NDMyMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "squirrel ninja"
+    },
+    {
+      "id": "avatar-12",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1684013212836-3e2233e57ed2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmcm9nJTIwa2luZ3xlbnwwfHx8fDE3NjQ3ODQzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "frog king"
+    },
+    {
+      "id": "avatar-13",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1573535283350-3bf29c220dcd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx0aWdlciUyMHBpbG90fGVufDB8fHx8MTc2NDc4NDMyMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tiger pilot"
+    },
+    {
+      "id": "avatar-14",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1756572396714-5f5430b725e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxyYWJiaXQlMjBtYWdpY2lhbnxlbnwwfHx8fDE3NjQ3ODQzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "rabbit magician"
+    },
+    {
+      "id": "avatar-15",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1722925251504-ebd4323a8165?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxlbGVwaGFudCUyMGxpYnJhcmlhbnxlbnwwfHx8fDE3NjQ3ODQzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "elephant librarian"
+    },
+    {
+      "id": "avatar-16",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1670173781004-5f5680779b3a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxnaXJhZmZlJTIwdG91cmlzdHxlbnwwfHx8fDE3NjQ3ODQzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "giraffe tourist"
+    },
+    {
+      "id": "avatar-17",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1664185200948-417169a8f081?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx3b2xmJTIwbXVzaWNpYW58ZW58MHx8fHwxNzY0Nzg0MzIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "wolf musician"
+    },
+    {
+      "id": "avatar-18",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1643702842778-14545902aec6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8aGlwcG8lMjBmaXJlZmlnaHRlcnxlbnwwfHx8fDE3NjQ3ODQzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hippo firefighter"
+    },
+    {
+      "id": "avatar-19",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1598891758585-7061ab33eec6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxvdHRlciUyMHN1cmZlcnxlbnwwfHx8fDE3NjQ3ODQzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "otter surfer"
+    },
+    {
+      "id": "avatar-20",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1722781874251-ef44c9e88392?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxvd2wlMjBwcm9mZXNzb3J8ZW58MHx8fHwxNzY0Nzg0MzIxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "owl professor"
+    },
+    {
+      "id": "avatar-21",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1682627101348-0f7c7c4764f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxyYWNjb29uJTIwZGV0ZWN0aXZlfGVufDB8fHx8MTc2NDc4NDMyMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "raccoon detective"
+    },
+    {
+      "id": "avatar-22",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1631302332910-8f3a48e9e98c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjb3clMjBmYXJtZXJ8ZW58MHx8fHwxNzY0Nzg0MzIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cow farmer"
+    },
+    {
+      "id": "avatar-23",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1586782764431-c7f44aaa0ad5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxiYWRnZXIlMjBidWlsZGVyfGVufDB8fHx8MTc2NDc4NDMyMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "badger builder"
+    },
+    {
+      "id": "avatar-24",
+      "description": "A placeholder image for an avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1610501239496-4ca8da8cadd4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxob3JzZSUyMGNvd2JveXxlbnwwfHx8fDE3NjQ3ODQzMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "horse cowboy"
+    }
+  ]
+}
