@@ -20,7 +20,6 @@ import {
   Zap,
   Rocket,
   UserCheck,
-  UserClock,
   UserPlus,
   UserMinus,
   Vote,
