@@ -66,7 +66,7 @@ import SessionSummaryDialog from "./SessionSummaryDialog";
 import { cn, getInitials } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import AvatarPickerDialog from "@/components/AvatarPickerDialog";
-import { useUser, useDoc, useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import { useUserSafe, useDoc, useCollection, useFirebaseSafe, useMemoFirebase } from "@/firebase";
 import { doc, collection, serverTimestamp, deleteDoc, updateDoc, addDoc } from "firebase/firestore";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -115,14 +115,15 @@ type FinalRoomState = {
 };
 
 export default function PokerRoom({ roomId }: { roomId: string }) {
-  const { firestore } = useFirebase();
-  const { user, isUserLoading } = useUser();
+  const firebase = useFirebaseSafe();
+  const firestore = firebase?.firestore ?? null;
+  const { user, isUserLoading } = useUserSafe();
   const router = useRouter();
   const { toast } = useToast();
   const previousIsRevealed = useRef<boolean | undefined>();
   const storyInputRef = useRef<HTMLTextAreaElement>(null);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
-  
+
   // Memoize Firestore references
   const roomRef = useMemoFirebase(() => firestore ? doc(firestore, "rooms", roomId) : null, [firestore, roomId]);
   const playersRef = useMemoFirebase(() => firestore ? collection(firestore, "rooms", roomId, "players") : null, [firestore, roomId]);
@@ -134,10 +135,10 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
   const { data: roomData, isLoading: isRoomLoading } = useDoc<Room>(roomRef);
   const { data: players, isLoading: arePlayersLoading } = useCollection<Player>(playersRef);
   const { data: history, isLoading: isHistoryLoading } = useCollection<Story>(storiesRef);
-  
+
   const [votedValue, setVotedValue] = useState<string | null>(null);
   const [comment, setComment] = useState("");
-  
+
   const [storyInput, setStoryInput] = useState("");
   const [roomUrl, setRoomUrl] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
@@ -157,7 +158,7 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
   const currentUserData = useMemo(() => players?.find(p => p.id === user?.uid), [players, user]);
   const isHost = useMemo(() => currentUserData?.isHost ?? false, [currentUserData]);
   const currentStory = roomData?.currentStory;
-  
+
   const hostPlayer = useMemo(() => players?.find(p => p.isHost), [players]);
   const otherPlayers = useMemo(() => players?.filter(p => !p.isHost) ?? [], [players]);
 
@@ -170,17 +171,17 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
       setRoomUrl(`${window.location.origin}/room/${roomId}`);
     }
   }, [roomId]);
-  
+
   // Handle session end for players
   useEffect(() => {
     if (!isRoomLoading && hasLoadedOnce && !roomData) {
       const votesForResults = players?.map(p => ({
-          player: p.name,
-          vote: p.vote || '',
-          comment: p.comment,
-          avatarUrl: p.avatarUrl
+        player: p.name,
+        vote: p.vote || '',
+        comment: p.comment,
+        avatarUrl: p.avatarUrl
       })) ?? [];
-        
+
       setFinalRoomState({
         players: players || [],
         history: history || [],
@@ -188,9 +189,9 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
       });
       setIsRoomClosed(true);
     }
-    
-    if(!isRoomLoading && !arePlayersLoading && !hasLoadedOnce) {
-        setHasLoadedOnce(true);
+
+    if (!isRoomLoading && !arePlayersLoading && !hasLoadedOnce) {
+      setHasLoadedOnce(true);
     }
   }, [isRoomLoading, arePlayersLoading, roomData, hasLoadedOnce, players, history, currentStory?.title]);
 
@@ -199,40 +200,40 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
   useEffect(() => {
     // Only run if the revealed state has changed from true to false
     if (previousIsRevealed.current === true && roomData?.isRevealed === false) {
-        // All players reset their local voting UI state
-        setVotedValue(null);
-        setComment("");
+      // All players reset their local voting UI state
+      setVotedValue(null);
+      setComment("");
 
-        // This part should ONLY be run by the host to reset votes in Firestore.
-        if (isHost) {
-            players?.forEach(p => {
-                if (p.voted && firestore && p.id) {
-                    const playerDocRef = doc(firestore, `rooms/${roomId}/players/${p.id}`);
-                    updateDoc(playerDocRef, {
-                        voted: false,
-                        vote: null,
-                        comment: "",
-                    });
-                }
+      // This part should ONLY be run by the host to reset votes in Firestore.
+      if (isHost) {
+        players?.forEach(p => {
+          if (p.voted && firestore && p.id) {
+            const playerDocRef = doc(firestore, `rooms/${roomId}/players/${p.id}`);
+            updateDoc(playerDocRef, {
+              voted: false,
+              vote: null,
+              comment: "",
             });
-        }
+          }
+        });
+      }
     }
     // Update the ref for the next render
     previousIsRevealed.current = roomData?.isRevealed;
   }, [roomData?.isRevealed, isHost, firestore, players, roomId]);
-  
+
   // Show global toast messages
   useEffect(() => {
     if (roomData?.lastMessage && roomRef) {
-        toast({
-            title: "Host Update",
-            description: roomData.lastMessage,
-        });
-        // Each client is responsible for clearing the message for themselves
-        // to prevent race conditions. The security rules allow this specific update.
-        updateDoc(roomRef, { lastMessage: "" });
+      toast({
+        title: "Host Update",
+        description: roomData.lastMessage,
+      });
+      // Each client is responsible for clearing the message for themselves
+      // to prevent race conditions. The security rules allow this specific update.
+      updateDoc(roomRef, { lastMessage: "" });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomData?.lastMessage, roomRef]);
 
   const hasSubmitted = useMemo(() => currentUserData?.voted ?? false, [currentUserData]);
@@ -268,41 +269,41 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
   const isLoading = isUserLoading || isRoomLoading || arePlayersLoading || !hasLoadedOnce;
 
   if (isExiting) {
-      return <EndingSession />;
+    return <EndingSession />;
   }
 
   if (isLoading) {
-      return <Loader />;
+    return <Loader />;
   }
-  
+
   if (isRoomClosed && finalRoomState) {
-     return (
-       <div className="flex items-center justify-center h-screen">
-         <div className="text-center p-8">
-           <h2 className="text-2xl font-bold mb-2">The host has ended the session.</h2>
-           <p className="text-muted-foreground mb-6">
-             You can download the session summary or return home.
-           </p>
-            <div className="flex gap-4 justify-center">
-                 <Dialog open={openSummary} onOpenChange={setOpenSummary}>
-                    <DialogTrigger asChild>
-                         <Button variant="outline" onClick={() => setOpenSummary(true)}>
-                            <Share2 className="mr-2 h-4 w-4" />
-                            Download Summary
-                         </Button>
-                    </DialogTrigger>
-                    <SessionSummaryDialog roomData={finalRoomState} />
-                </Dialog>
-                <Button asChild>
-                    <Link href="/">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Exit to Home
-                    </Link>
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-bold mb-2">The host has ended the session.</h2>
+          <p className="text-muted-foreground mb-6">
+            You can download the session summary or return home.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Dialog open={openSummary} onOpenChange={setOpenSummary}>
+              <DialogTrigger asChild>
+                <Button variant="outline" onClick={() => setOpenSummary(true)}>
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Download Summary
                 </Button>
-            </div>
-         </div>
-       </div>
-     );
+              </DialogTrigger>
+              <SessionSummaryDialog roomData={finalRoomState} />
+            </Dialog>
+            <Button asChild>
+              <Link href="/">
+                <LogOut className="mr-2 h-4 w-4" />
+                Exit to Home
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!roomData && hasLoadedOnce) {
@@ -342,7 +343,7 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
     setVotedValue(value);
     commentInputRef.current?.focus();
   };
-  
+
   const handleSubmitVote = () => {
     if (votedValue && currentUserRef) {
       updateDoc(currentUserRef, {
@@ -358,19 +359,19 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
       updateDoc(roomRef, { isRevealed: true });
     }
   }
-  
+
   const handleNextStory = (finalSize: string) => {
     if (!isHost || !roomRef || !currentStory?.title) return;
-  
+
     // Immediately reset the room state for all players
     updateDoc(roomRef, {
       currentStory: { title: "" },
       isRevealed: false,
     });
-  
+
     // Show the ad overlay to the host
     setShowHostAd(true);
-  
+
     // Prepare the data for archiving in the background
     const storyToArchive = {
       title: currentStory.title,
@@ -383,19 +384,19 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
       })) ?? [],
       createdAt: serverTimestamp(),
     };
-  
+
     // Define the function that will run after the ad finishes
     const proceedAfterAd = () => {
       if (!storiesRef) return;
-  
+
       // 1. Archive the completed story
       addDoc(storiesRef, storyToArchive);
-  
+
       // 2. Reset host's local state
       setStoryInput("");
       setShowHostAd(false);
     };
-  
+
     // Make the function available globally for the overlay to call
     (window as any).proceedAfterAd = proceedAfterAd;
   };
@@ -424,7 +425,7 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
-  
+
   const handleCopyId = () => {
     navigator.clipboard.writeText(roomId);
     setCopiedId(true);
@@ -433,15 +434,15 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
 
   const handleProfileSave = (newName: string, newAvatarUrl: string) => {
     if (currentUserRef) {
-        const newNameTrimmed = newName.trim();
-        if(newNameTrimmed) {
-             updateDoc(currentUserRef, { name: newNameTrimmed });
-             localStorage.setItem("pokerUserName", newNameTrimmed);
-        }
-        if(newAvatarUrl !== undefined) {
-            updateDoc(currentUserRef, { avatarUrl: newAvatarUrl });
-            localStorage.setItem("pokerUserAvatar", newAvatarUrl);
-        }
+      const newNameTrimmed = newName.trim();
+      if (newNameTrimmed) {
+        updateDoc(currentUserRef, { name: newNameTrimmed });
+        localStorage.setItem("pokerUserName", newNameTrimmed);
+      }
+      if (newAvatarUrl !== undefined) {
+        updateDoc(currentUserRef, { avatarUrl: newAvatarUrl });
+        localStorage.setItem("pokerUserAvatar", newAvatarUrl);
+      }
     }
     setIsAvatarPickerOpen(false);
   };
@@ -451,11 +452,11 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
 
     setIsExiting(true);
     try {
-        await deleteDoc(roomRef);
-        router.push('/');
+      await deleteDoc(roomRef);
+      router.push('/');
     } catch (error) {
-        console.error("Error deleting room:", error);
-        setIsExiting(false); // Reset on failure
+      console.error("Error deleting room:", error);
+      setIsExiting(false); // Reset on failure
     }
   };
 
@@ -464,9 +465,9 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
       updateDoc(roomRef, { allowPlayerInvites: checked });
     }
   };
-  
+
   const cardClassName = "bg-card/80 backdrop-blur-sm";
-  
+
   const usedAvatars = players?.map(p => p.avatarUrl).filter(Boolean) ?? [];
 
   const votesForResults = players?.map(p => ({
@@ -475,7 +476,7 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
     comment: p.comment,
     avatarUrl: p.avatarUrl
   })) ?? [];
-  
+
   const hasCurrentStory = !!currentStory?.title;
 
   const canInvite = isHost || roomData?.allowPlayerInvites !== false;
@@ -503,116 +504,116 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
               SizeWise Poker
             </h1>
             {canInvite && (
-                <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+              <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="outline" className="h-12">
+                  <Button variant="outline" className="h-12">
                     <LinkIcon className="mr-2 h-4 w-4" />
                     Invite Players
-                    </Button>
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
+                  <DialogHeader>
                     <DialogTitle>Invite Players</DialogTitle>
                     <DialogDescription>
-                        Share the room ID or link to invite your team.
+                      Share the room ID or link to invite your team.
                     </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex flex-col gap-6 py-4">
+                  </DialogHeader>
+                  <div className="flex flex-col gap-6 py-4">
                     {isHost && (
-                        <div className="flex items-center justify-between p-3 rounded-md bg-primary/10">
-                            <Label htmlFor="allow-invites" className="pr-4">Allow players to invite others</Label>
-                            <Switch
-                                id="allow-invites"
-                                checked={roomData?.allowPlayerInvites !== false}
-                                onCheckedChange={handleInviteToggle}
-                            />
-                        </div>
+                      <div className="flex items-center justify-between p-3 rounded-md bg-primary/10">
+                        <Label htmlFor="allow-invites" className="pr-4">Allow players to invite others</Label>
+                        <Switch
+                          id="allow-invites"
+                          checked={roomData?.allowPlayerInvites !== false}
+                          onCheckedChange={handleInviteToggle}
+                        />
+                      </div>
                     )}
                     <div className="space-y-2">
-                        <div className="space-y-2">
-                            <h4 className="font-medium leading-none">Share Room ID</h4>
-                            <p className="text-sm text-muted-foreground">
-                            Join with the ID on the home page.
-                            </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Input value={roomId} readOnly className="h-9 font-mono tracking-widest bg-background" />
-                            <Button onClick={handleCopyId} variant="secondary" size="sm" className="px-3">
-                            <span className="sr-only">Copy ID</span>
-                            {copiedId ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                            </Button>
-                        </div>
+                      <div className="space-y-2">
+                        <h4 className="font-medium leading-none">Share Room ID</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Join with the ID on the home page.
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Input value={roomId} readOnly className="h-9 font-mono tracking-widest bg-background" />
+                        <Button onClick={handleCopyId} variant="secondary" size="sm" className="px-3">
+                          <span className="sr-only">Copy ID</span>
+                          {copiedId ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </div>
                     <div className="space-y-2">
-                        <div className="space-y-2">
-                            <h4 className="font-medium leading-none">Share Room Link</h4>
-                            <p className="text-sm text-muted-foreground">
-                            Anyone with this link can also join.
-                            </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Input value={roomUrl} readOnly className="h-9 bg-background" />
-                            <Button onClick={handleCopyLink} variant="secondary" size="sm" className="px-3">
-                            <span className="sr-only">Copy Link</span>
-                            {copiedLink ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                            </Button>
-                        </div>
+                      <div className="space-y-2">
+                        <h4 className="font-medium leading-none">Share Room Link</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Anyone with this link can also join.
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Input value={roomUrl} readOnly className="h-9 bg-background" />
+                        <Button onClick={handleCopyLink} variant="secondary" size="sm" className="px-3">
+                          <span className="sr-only">Copy Link</span>
+                          {copiedLink ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </div>
-                    </div>
-                    <DialogFooter>
-                      <DialogClose asChild>
-                          <Button type="button" className="w-full">
-                          Close
-                          </Button>
-                      </DialogClose>
-                    </DialogFooter>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button type="button" className="w-full">
+                        Close
+                      </Button>
+                    </DialogClose>
+                  </DialogFooter>
                 </DialogContent>
-                </Dialog>
+              </Dialog>
             )}
             <Dialog open={openSummary} onOpenChange={setOpenSummary}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                   <DialogTrigger asChild>
-                      <Button variant="outline" className="h-12">
-                        <Share2 className="mr-2 h-4 w-4" />
-                        Session Summary
-                      </Button>
-                   </DialogTrigger>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="h-12">
+                      <Share2 className="mr-2 h-4 w-4" />
+                      Session Summary
+                    </Button>
+                  </DialogTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Share Session Summary</p>
                 </TooltipContent>
               </Tooltip>
-              {currentStory && <SessionSummaryDialog roomData={{ players: players ?? [], history: history ?? [], currentStory: { title: currentStory.title, votes: votesForResults} }} />}
+              {currentStory && <SessionSummaryDialog roomData={{ players: players ?? [], history: history ?? [], currentStory: { title: currentStory.title, votes: votesForResults } }} />}
             </Dialog>
           </div>
           <div className="flex items-center gap-4">
-             <Button variant="outline" className="h-12 justify-start px-3" onClick={() => setIsAvatarPickerOpen(true)}>
-                <Avatar className="h-8 w-8">
-                  {currentUserData?.avatarUrl ? (
-                    <AvatarImage src={currentUserData.avatarUrl} className="object-cover" />
-                  ) : null}
-                  <AvatarFallback>{getInitials(currentUserData?.name || '')}</AvatarFallback>
-                </Avatar>
-                <div className="ml-2 text-left">
-                  <p className="font-semibold leading-tight text-sm flex items-center gap-1.5">
-                    {currentUserData?.name}
-                    {isHost && <Crown className="w-3 h-3 text-accent" />}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {isHost ? 'Host' : 'Player'}
-                  </p>
-                </div>
-                <Pencil className="w-4 h-4 ml-2 text-muted-foreground" />
+            <Button variant="outline" className="h-12 justify-start px-3" onClick={() => setIsAvatarPickerOpen(true)}>
+              <Avatar className="h-8 w-8">
+                {currentUserData?.avatarUrl ? (
+                  <AvatarImage src={currentUserData.avatarUrl} className="object-cover" />
+                ) : null}
+                <AvatarFallback>{getInitials(currentUserData?.name || '')}</AvatarFallback>
+              </Avatar>
+              <div className="ml-2 text-left">
+                <p className="font-semibold leading-tight text-sm flex items-center gap-1.5">
+                  {currentUserData?.name}
+                  {isHost && <Crown className="w-3 h-3 text-accent" />}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {isHost ? 'Host' : 'Player'}
+                </p>
+              </div>
+              <Pencil className="w-4 h-4 ml-2 text-muted-foreground" />
             </Button>
-            
+
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                <DialogTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-12 w-12">
-                        <Settings />
-                    </Button>
-                </DialogTrigger>
-                <RoomSettingsDialog isHost={isHost} />
+              <DialogTrigger asChild>
+                <Button variant="outline" size="icon" className="h-12 w-12">
+                  <Settings />
+                </Button>
+              </DialogTrigger>
+              <RoomSettingsDialog isHost={isHost} />
             </Dialog>
 
             <AlertDialog>
@@ -637,7 +638,7 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
                     <AlertDialogAction onClick={handleHostExit}>End Session</AlertDialogAction>
                   ) : (
                     <AlertDialogAction asChild>
-                        <Link href="/">Exit Room</Link>
+                      <Link href="/">Exit Room</Link>
                     </AlertDialogAction>
                   )}
                 </AlertDialogFooter>
@@ -662,23 +663,23 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
                   <div className="flex flex-col flex-1 items-center w-full max-w-4xl mx-auto">
                     <div className="w-full mb-4">
                       <div className="text-left w-full">
-                          <h2 className="text-xl font-bold font-headline whitespace-pre-wrap">{currentStory.title}</h2>
+                        <h2 className="text-xl font-bold font-headline whitespace-pre-wrap">{currentStory.title}</h2>
                       </div>
                     </div>
-                    
+
                     <Card className={cn(cardClassName, "w-full")}>
-                       <CardContent className="p-6">
-                         {hasSubmitted ? (
-                             <div className="flex flex-row items-center justify-center gap-2 text-center animate-in fade-in duration-500 p-4 mb-4 rounded-lg bg-primary/10 w-full">
-                                 <CheckCircle2 className="w-6 h-6 text-primary" />
-                                 <p className="text-sm font-semibold text-primary">
-                                     Your vote is cast. Waiting for others to vote.
-                                 </p>
-                             </div>
-                         ) : (
-                            <p className="text-muted-foreground mb-4">Select a card to cast your vote.</p>
-                         )}
-                         <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
+                      <CardContent className="p-6">
+                        {hasSubmitted ? (
+                          <div className="flex flex-row items-center justify-center gap-2 text-center animate-in fade-in duration-500 p-4 mb-4 rounded-lg bg-primary/10 w-full">
+                            <CheckCircle2 className="w-6 h-6 text-primary" />
+                            <p className="text-sm font-semibold text-primary">
+                              Your vote is cast. Waiting for others to vote.
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground mb-4">Select a card to cast your vote.</p>
+                        )}
+                        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
                           <div className="grid grid-cols-5 gap-2">
                             {sizingOptions.map((option) => (
                               <button
@@ -690,34 +691,34 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
                                   !hasSubmitted && "hover:-translate-y-1"
                                 )}
                               >
-                                  <Card className={cn(
-                                      "aspect-[3/4] flex items-center justify-center text-xl font-bold focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-primary/50",
-                                      votedValue === option
-                                      ? "bg-primary text-primary-foreground border-primary"
-                                      : "bg-card border-dashed",
-                                      !hasSubmitted && "hover:bg-primary/90 hover:text-primary-foreground",
-                                      hasSubmitted ? "cursor-default" : "cursor-pointer"
-                                  )}>
-                                      {option === 'Coffee' ? <Coffee className="h-8 w-8" /> : option}
-                                  </Card>
+                                <Card className={cn(
+                                  "aspect-[3/4] flex items-center justify-center text-xl font-bold focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-primary/50",
+                                  votedValue === option
+                                    ? "bg-primary text-primary-foreground border-primary"
+                                    : "bg-card border-dashed",
+                                  !hasSubmitted && "hover:bg-primary/90 hover:text-primary-foreground",
+                                  hasSubmitted ? "cursor-default" : "cursor-pointer"
+                                )}>
+                                  {option === 'Coffee' ? <Coffee className="h-8 w-8" /> : option}
+                                </Card>
                               </button>
                             ))}
                           </div>
 
                           <div className="flex flex-col gap-2 h-full">
-                              <Textarea
-                                ref={commentInputRef}
-                                id="comment"
-                                placeholder="Explain your vote..."
-                                disabled={!votedValue || hasSubmitted}
-                                value={comment}
-                                onChange={(e) => setComment(e.target.value)}
-                                className={cn("transition-all duration-300 bg-background flex-1", votedValue ? 'focus-visible:ring-primary' : '')}
-                              />
-                              <Button onClick={handleSubmitVote} variant="outline" disabled={!votedValue || hasSubmitted}>
-                                <Send className="mr-2 h-4 w-4" />
-                                Submit Vote
-                              </Button>
+                            <Textarea
+                              ref={commentInputRef}
+                              id="comment"
+                              placeholder="Explain your vote..."
+                              disabled={!votedValue || hasSubmitted}
+                              value={comment}
+                              onChange={(e) => setComment(e.target.value)}
+                              className={cn("transition-all duration-300 bg-background flex-1", votedValue ? 'focus-visible:ring-primary' : '')}
+                            />
+                            <Button onClick={handleSubmitVote} variant="outline" disabled={!votedValue || hasSubmitted}>
+                              <Send className="mr-2 h-4 w-4" />
+                              Submit Vote
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -726,43 +727,43 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
                 )
               ) : (
                 <div className="flex flex-col flex-1 items-center text-center pt-8">
-                   <div className="w-full max-w-md mx-auto px-8 pb-8 pt-4">
-                     <svg width="150" height="150" viewBox="0 0 100 100" className="mx-auto mb-6 text-primary opacity-20">
+                  <div className="w-full max-w-md mx-auto px-8 pb-8 pt-4">
+                    <svg width="150" height="150" viewBox="0 0 100 100" className="mx-auto mb-6 text-primary opacity-20">
                       <defs>
                         <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" style={{stopColor: 'hsl(var(--primary))', stopOpacity:1}} />
-                          <stop offset="100%" style={{stopColor: 'hsl(var(--accent))', stopOpacity:1}} />
+                          <stop offset="0%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 1 }} />
+                          <stop offset="100%" style={{ stopColor: 'hsl(var(--accent))', stopOpacity: 1 }} />
                         </linearGradient>
                       </defs>
-                      <path d="M 10,90 Q 50,10 90,90 T 170,90" stroke="url(#grad1)" fill="transparent" strokeWidth="4" strokeLinecap="round"/>
-                      <path d="M 20,80 Q 50,30 80,80 T 140,80" stroke="url(#grad1)" fill="transparent" strokeWidth="2" strokeDasharray="5" strokeLinecap="round"/>
-                      <circle cx="50" cy="50" r="5" fill="hsl(var(--primary))"/>
-                      <circle cx="90" cy="50" r="3" fill="hsl(var(--accent))" opacity="0.6"/>
+                      <path d="M 10,90 Q 50,10 90,90 T 170,90" stroke="url(#grad1)" fill="transparent" strokeWidth="4" strokeLinecap="round" />
+                      <path d="M 20,80 Q 50,30 80,80 T 140,80" stroke="url(#grad1)" fill="transparent" strokeWidth="2" strokeDasharray="5" strokeLinecap="round" />
+                      <circle cx="50" cy="50" r="5" fill="hsl(var(--primary))" />
+                      <circle cx="90" cy="50" r="3" fill="hsl(var(--accent))" opacity="0.6" />
                     </svg>
-                     <h2 className="text-xl font-semibold mb-2">Ready for the next story!</h2>
-                     {isHost ? (
+                    <h2 className="text-xl font-semibold mb-2">Ready for the next story!</h2>
+                    {isHost ? (
                       <div className="space-y-4">
                         <p className="text-muted-foreground mb-2">Add a new story to start voting.</p>
-                          <Textarea
-                            id="story-title"
-                            ref={storyInputRef}
-                            placeholder="e.g. As a user, I want to be able to filter search results by category so that I can find relevant items more easily."
-                            value={storyInput}
-                            onChange={(e) => setStoryInput(e.target.value)}
-                            className="bg-background"
-                            rows={3}
-                          />
-                           <p className="text-xs text-muted-foreground text-left">
-                                Minimum 5 characters required.
-                            </p>
-                          <Button onClick={handleStartVoting} disabled={storyInput.trim().length < 5} className="w-full">
-                            <Plus size={16} className="mr-2" /> Start
-                          </Button>
+                        <Textarea
+                          id="story-title"
+                          ref={storyInputRef}
+                          placeholder="e.g. As a user, I want to be able to filter search results by category so that I can find relevant items more easily."
+                          value={storyInput}
+                          onChange={(e) => setStoryInput(e.target.value)}
+                          className="bg-background"
+                          rows={3}
+                        />
+                        <p className="text-xs text-muted-foreground text-left">
+                          Minimum 5 characters required.
+                        </p>
+                        <Button onClick={handleStartVoting} disabled={storyInput.trim().length < 5} className="w-full">
+                          <Plus size={16} className="mr-2" /> Start
+                        </Button>
                       </div>
                     ) : (
                       <div className="space-y-4">
-                          <p className="text-muted-foreground">The host will add a story to start voting.</p>
-                          <GoogleAd type="native" />
+                        <p className="text-muted-foreground">The host will add a story to start voting.</p>
+                        <GoogleAd type="native" />
                       </div>
                     )}
                   </div>
@@ -778,82 +779,82 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
                   <Vote className="mr-2 h-5 w-5" />
                   Voting Status
                 </h2>
-                 <div
-                    className="relative h-20 w-20 shrink-0 rounded-full mx-auto"
-                    style={{
-                        // @ts-ignore
-                        "--progress": `${voteProgress}%`,
-                        background: `
+                <div
+                  className="relative h-20 w-20 shrink-0 rounded-full mx-auto"
+                  style={{
+                    // @ts-ignore
+                    "--progress": `${voteProgress}%`,
+                    background: `
                             radial-gradient(hsl(var(--card)) 65%, transparent 66%),
                             conic-gradient(hsl(var(--primary)) calc(var(--progress)), hsl(var(--muted)) 0deg)
                         `
-                    }}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-lg font-bold">
-                            {votedCount}/{totalPlayers}
-                        </span>
-                    </div>
+                  }}
+                >
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-bold">
+                      {votedCount}/{totalPlayers}
+                    </span>
+                  </div>
                 </div>
 
                 <p className="text-sm text-center text-muted-foreground">Players Voted</p>
-                  
-                  {isHost && (
-                      <div className="flex items-center gap-4">
-                        {!isRevealed ? (
-                          playersWaiting.length > 0 ? (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button className="w-full">
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  Reveal Votes
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/50 mb-4">
-                                      <AlertTriangle className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
-                                  </div>
-                                  <AlertDialogTitle className="text-center">{playersWaiting.length} player(s) have not voted yet.</AlertDialogTitle>
-                                  <AlertDialogDescription className="text-center">
-                                    Are you sure you want to proceed? Their votes won't be counted.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <div className="py-4 space-y-4">
-                                  <div className="flex flex-wrap items-center justify-center gap-4">
-                                      {playersWaiting.map((player) => (
-                                          <div key={player.id} className="flex flex-col items-center gap-1">
-                                              <Avatar>
-                                                  <AvatarImage src={player.avatarUrl} className="object-cover" />
-                                                  <AvatarFallback>{getInitials(player.name)}</AvatarFallback>
-                                              </Avatar>
-                                              <p className="text-xs text-muted-foreground">{player.name}</p>
-                                          </div>
-                                      ))}
-                                  </div>
-                                </div>
-                                <AlertDialogFooter className="sm:justify-center pt-4">
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={handleReveal}>
-                                    Reveal Anyway
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          ) : (
-                            <Button onClick={handleRevealClick} className="w-full">
+
+                {isHost && (
+                  <div className="flex items-center gap-4">
+                    {!isRevealed ? (
+                      playersWaiting.length > 0 ? (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button className="w-full">
                               <Eye className="mr-2 h-4 w-4" />
                               Reveal Votes
                             </Button>
-                          )
-                        ) : (
-                           <Button onClick={handleCreateNewStoryClick} className="w-full">
-                              <Plus className="mr-2 h-4 w-4" />
-                              Create New Story
-                            </Button>
-                        )}
-                      </div>
-                  )}
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/50 mb-4">
+                                <AlertTriangle className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
+                              </div>
+                              <AlertDialogTitle className="text-center">{playersWaiting.length} player(s) have not voted yet.</AlertDialogTitle>
+                              <AlertDialogDescription className="text-center">
+                                Are you sure you want to proceed? Their votes won't be counted.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <div className="py-4 space-y-4">
+                              <div className="flex flex-wrap items-center justify-center gap-4">
+                                {playersWaiting.map((player) => (
+                                  <div key={player.id} className="flex flex-col items-center gap-1">
+                                    <Avatar>
+                                      <AvatarImage src={player.avatarUrl} className="object-cover" />
+                                      <AvatarFallback>{getInitials(player.name)}</AvatarFallback>
+                                    </Avatar>
+                                    <p className="text-xs text-muted-foreground">{player.name}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <AlertDialogFooter className="sm:justify-center pt-4">
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleReveal}>
+                                Reveal Anyway
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      ) : (
+                        <Button onClick={handleRevealClick} className="w-full">
+                          <Eye className="mr-2 h-4 w-4" />
+                          Reveal Votes
+                        </Button>
+                      )
+                    ) : (
+                      <Button onClick={handleCreateNewStoryClick} className="w-full">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create New Story
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
             {hostPlayer && (
@@ -874,8 +875,8 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
                 />
               </div>
             )}
-            
-            
+
+
             <div>
               <h2 className="font-bold text-lg flex items-center gap-2 mb-2">
                 <Users className="h-5 w-5" />
@@ -896,7 +897,7 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
                   />
                 ))}
                 {otherPlayers.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-4">Waiting for players to join...</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">Waiting for players to join...</p>
                 )}
               </div>
             </div>
@@ -911,27 +912,27 @@ export default function PokerRoom({ roomId }: { roomId: string }) {
         currentName={currentUserData?.name || ''}
         usedAvatars={usedAvatars}
       />}
-       {isHost && showHostAd && <HostAdOverlay onFinished={() => (window as any).proceedAfterAd()} />}
+      {isHost && showHostAd && <HostAdOverlay onFinished={() => (window as any).proceedAfterAd()} />}
 
-       <AlertDialog open={showSubmitSizeAlert} onOpenChange={setShowSubmitSizeAlert}>
+      <AlertDialog open={showSubmitSizeAlert} onOpenChange={setShowSubmitSizeAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/50 mb-4">
-                <AlertTriangle className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
+              <AlertTriangle className="h-6 w-6 text-yellow-500 dark:text-yellow-400" />
             </div>
             <AlertDialogTitle className="text-center">Final Size Not Submitted</AlertDialogTitle>
             <AlertDialogDescription className="text-center">
-                You have not submitted a final size for the current story. Proceeding will archive this story as "Not Sized".
+              You have not submitted a final size for the current story. Proceeding will archive this story as "Not Sized".
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="sm:justify-center pt-4">
             <AlertDialogCancel>Go Back</AlertDialogCancel>
             <AlertDialogAction onClick={() => handleNextStory("Not Sized")}>
-                Continue Anyway
+              Continue Anyway
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-    </AlertDialog>
+      </AlertDialog>
     </TooltipProvider>
   );
 }

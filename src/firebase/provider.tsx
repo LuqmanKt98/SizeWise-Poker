@@ -174,3 +174,70 @@ export const useUser = (): UserHookResult => { // Renamed from useAuthUser
   const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
   return { user, isUserLoading, userError };
 };
+
+// =============================================================================
+// SSG-SAFE HOOKS
+// These hooks return null during SSR/SSG instead of throwing errors.
+// Use these in components that may be rendered during static page generation.
+// =============================================================================
+
+/**
+ * SSG-safe version of useFirebase.
+ * Returns null if Firebase context is not available (e.g., during SSR/SSG).
+ */
+export const useFirebaseSafe = (): FirebaseServicesAndUser | null => {
+  const context = useContext(FirebaseContext);
+
+  if (context === undefined) {
+    return null;
+  }
+
+  if (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth) {
+    return null;
+  }
+
+  return {
+    firebaseApp: context.firebaseApp,
+    firestore: context.firestore,
+    auth: context.auth,
+    user: context.user,
+    isUserLoading: context.isUserLoading,
+    userError: context.userError,
+  };
+};
+
+/** SSG-safe hook to access Firebase Auth instance. Returns null during SSR/SSG. */
+export const useAuthSafe = (): Auth | null => {
+  const firebase = useFirebaseSafe();
+  return firebase?.auth ?? null;
+};
+
+/** SSG-safe hook to access Firestore instance. Returns null during SSR/SSG. */
+export const useFirestoreSafe = (): Firestore | null => {
+  const firebase = useFirebaseSafe();
+  return firebase?.firestore ?? null;
+};
+
+/** SSG-safe hook to access Firebase App instance. Returns null during SSR/SSG. */
+export const useFirebaseAppSafe = (): FirebaseApp | null => {
+  const firebase = useFirebaseSafe();
+  return firebase?.firebaseApp ?? null;
+};
+
+/**
+ * SSG-safe hook specifically for accessing the authenticated user's state.
+ * Returns a loading state during SSR/SSG.
+ */
+export const useUserSafe = (): UserHookResult => {
+  const firebase = useFirebaseSafe();
+  
+  if (!firebase) {
+    return { user: null, isUserLoading: true, userError: null };
+  }
+  
+  return { 
+    user: firebase.user, 
+    isUserLoading: firebase.isUserLoading, 
+    userError: firebase.userError 
+  };
+};

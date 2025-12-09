@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useUser, useFirebase } from "@/firebase";
+import { useUserSafe, useFirebaseSafe } from "@/firebase";
 import { collection, serverTimestamp, addDoc } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 
@@ -73,37 +73,38 @@ export default function FeedbackDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const { firestore } = useFirebase();
-  const { user } = useUser();
+  const firebase = useFirebaseSafe();
+  const firestore = firebase?.firestore ?? null;
+  const { user } = useUserSafe();
 
   const handleSubmit = async () => {
     if (rating === 0 || !firestore || !user) return;
     setIsSubmitting(true);
 
     try {
-        const feedbackCollection = collection(firestore, 'feedback');
-        await addDoc(feedbackCollection, {
-            userId: user.uid,
-            rating: rating,
-            feedbackText: feedback,
-            createdAt: serverTimestamp()
-        });
+      const feedbackCollection = collection(firestore, 'feedback');
+      await addDoc(feedbackCollection, {
+        userId: user.uid,
+        rating: rating,
+        feedbackText: feedback,
+        createdAt: serverTimestamp()
+      });
 
-        setSubmitted(true);
+      setSubmitted(true);
+      setTimeout(() => {
+        onOpenChange(false);
         setTimeout(() => {
-            onOpenChange(false);
-            setTimeout(() => {
-                setSubmitted(false);
-                setFeedback("");
-                setRating(0);
-            }, 300);
-        }, 2000);
+          setSubmitted(false);
+          setFeedback("");
+          setRating(0);
+        }, 300);
+      }, 2000);
 
     } catch (error) {
-        console.error("Error submitting feedback: ", error);
-        // Optionally, show an error toast to the user
+      console.error("Error submitting feedback: ", error);
+      // Optionally, show an error toast to the user
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -112,12 +113,12 @@ export default function FeedbackDialog({
       <DialogContent>
         {submitted ? (
           <div className="py-8 text-center flex flex-col items-center gap-4">
-             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
-                <CheckCircle2 className="h-6 w-6 text-green-500 dark:text-green-400" />
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
+              <CheckCircle2 className="h-6 w-6 text-green-500 dark:text-green-400" />
             </div>
             <div className="space-y-1">
-                <DialogTitle>Thank you!</DialogTitle>
-                <DialogDescription>Your feedback has been submitted.</DialogDescription>
+              <DialogTitle>Thank you!</DialogTitle>
+              <DialogDescription>Your feedback has been submitted.</DialogDescription>
             </div>
           </div>
         ) : (
@@ -141,10 +142,10 @@ export default function FeedbackDialog({
               />
             </div>
             <DialogFooter className="sm:justify-center">
-                <Button onClick={handleSubmit} disabled={rating === 0 || isSubmitting} className="w-full sm:w-auto">
-                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {isSubmitting ? "Submitting..." : "Submit"}
-                </Button>
+              <Button onClick={handleSubmit} disabled={rating === 0 || isSubmitting} className="w-full sm:w-auto">
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </Button>
             </DialogFooter>
           </>
         )}
